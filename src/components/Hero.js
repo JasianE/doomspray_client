@@ -77,7 +77,7 @@ export default function HeroPage() {
 
         <div className="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56 text-center">
           <h1 className="text-6xl font-Khand tracking-tight text-gray-900 sm:text-9xl pb-5"> DoomSpray </h1>
-          <h2 className="text-3xl font-Khand tracking-tight text-gray-900 sm:text-5xl pb-10"> Conquer Doom Scrolling INSTANTELY </h2>
+          <h2 className="text-3xl font-Khand tracking-tight text-gray-900 sm:text-5xl pb-10"> Conquer Doom Scrolling INSTANTLY </h2>
         </div>
 
         <div
