@@ -12,7 +12,7 @@ function App() {
       <Navbar />
 
       <Routes>
-        {/* Homepage */}
+        http://localhost:3000
         <Route
           path="/"
           element={
