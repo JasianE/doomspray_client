@@ -21,6 +21,7 @@ root.render(
         clientId={clientId}
         authorizationParams={{
           redirect_uri: window.location.origin + "/dashboard",
+          audience: "https://api.doomspray.com"
         }}
         onRedirectCallback={onRedirectCallback}
         cacheLocation="localstorage"
