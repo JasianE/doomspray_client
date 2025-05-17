@@ -1,9 +1,27 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAuth0 } from "@auth0/auth0-react";
+import { useNavigate } from "react-router-dom";
+
+
 
 const Navbar = () => {
   const [showNav, setShowNav] = useState(false);
+
+  const { loginWithRedirect, isAuthenticated } = useAuth0();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      loginWithRedirect({
+        appState: { returnTo: "/dashboard" }
+      });
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -26,7 +44,7 @@ const Navbar = () => {
 
         <div className="text-4xl font-Khand text-blue-700">DoomSpray</div>
 
-        <button className="px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-500 text-white font-Khand shadow-lg transition">
+        <button onClick={handleLogin} className="px-4 py-2 rounded-lg bg-blue-700 hover:bg-blue-500 text-white font-Khand shadow-lg transition">
           Log In
         </button>
       </div>

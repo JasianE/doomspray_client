@@ -3,17 +3,35 @@
 import { useState } from 'react'
 import { Dialog, DialogPanel } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+import { useAuth0 } from "@auth0/auth0-react";
+import { useNavigate } from "react-router-dom";
+
 
 export default function HeroPage() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  // Login handler that prevents default and triggers Auth0 login redirect
+  const { loginWithRedirect, isAuthenticated } = useAuth0();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      loginWithRedirect({
+        appState: { returnTo: "/dashboard" }
+      });
+    }
+  };
 
   return (
     <div className="bg-white">
       <header className="absolute inset-x-0 top-0 z-50">
         <nav aria-label="Global" className="flex items-center justify-between p-6 lg:px-8">
           <div className="flex lg:flex-1">
-              <span className="sr-only">DoomSpray</span>
-               <h1 className="text-5xl font-Khand font-bold text-blue-700"> DS</h1> 
+            <span className="sr-only">DoomSpray</span>
+            <h1 className="text-5xl font-Khand font-bold text-blue-700"> DS</h1> 
           </div>
           <div className="flex lg:hidden">
             <button
@@ -27,11 +45,13 @@ export default function HeroPage() {
           </div>
           
           <div className="hidden lg:flex lg:flex-1 lg:justify-end">
-          <a href="#" className="underline-slide text-2xl font-Khand text-gray-900">
-            Log in <span aria-hidden="true">&rarr;</span>
-        </a>
-
-
+            <a 
+              href="#"  
+              onClick={handleLogin} 
+              className="underline-slide text-2xl font-Khand text-gray-900"
+            >
+              Log in <span aria-hidden="true">&rarr;</span>
+            </a>
           </div>
         </nav>
         <Dialog open={mobileMenuOpen} onClose={setMobileMenuOpen} className="lg:hidden">
@@ -49,9 +69,12 @@ export default function HeroPage() {
             </div>
             <div className="mt-6 flow-root">
               <div className="-my-6 divide-y divide-gray-500/10">
-               
                 <div className="py-6">
-                  <a href="#" className="-mx-3 block rounded-lg px-3 py-2.5 text-xl font-Khand text-gray-900 hover:bg-gray-50" >
+                  <a 
+                    href="#" 
+                    onClick={handleLogin} 
+                    className="-mx-3 block rounded-lg px-3 py-2.5 text-xl font-Khand text-gray-900 hover:bg-gray-50" 
+                  >
                     Log in
                   </a>
                 </div>
