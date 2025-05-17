@@ -1,11 +1,21 @@
 'use client';
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 
 export default function Dashboard() {
   const [input, setInput] = useState("");
-  const [history, setHistory] = useState([]);
+  const [history, setHistory] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("blockedSites");
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem("blockedSites", JSON.stringify(history));
+  }, [history]);
 
   const { user, isAuthenticated, isLoading } = useAuth0();
   if (isLoading) return <div>Loading...</div>;
