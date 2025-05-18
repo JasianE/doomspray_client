@@ -2,11 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth0 } from '@auth0/auth0-react';
 
+
 export default function Dashboard() {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [geminiSuggestions, setGeminiSuggestions] = useState([]);
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
 
   useEffect(() => {
@@ -40,7 +42,8 @@ export default function Dashboard() {
         setHistory(data);
 
         // Call Google Gemini AI API here
-        
+        await fetchGeminiSuggestions(data);
+
 
       } catch (error) {
         console.error('Error fetching blocked sites', error);
@@ -76,6 +79,9 @@ export default function Dashboard() {
         body: JSON.stringify({ url: input }), // Using 'input' as requested
       });
 
+      
+      await fetchGeminiSuggestions([input.trim(), ...history]);
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -110,6 +116,10 @@ export default function Dashboard() {
         body: JSON.stringify({ url: siteToDelete }),
       });
 
+      const updatedHistory = history.filter((_, i) => i !== index);
+      setHistory(updatedHistory);
+      await fetchGeminiSuggestions(updatedHistory);
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -123,6 +133,45 @@ export default function Dashboard() {
     }
   };
 
+  const fetchGeminiSuggestions = async (blockedSitesList) => {
+    try {
+      console.log('Fetching suggestions for:', blockedSitesList);
+      setLoading(true);
+      setError(null);
+    
+      const token = await getAccessTokenSilently({
+        authorizationParams: {
+          audience: "https://api.doomspray.com"
+        }
+      });
+    
+      const response = await fetch('http://localhost:8000/notifications/suggest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ blockedSites: blockedSitesList }),
+      });
+  
+      console.log('Response status:', response.status);
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get suggestions');
+      }
+    
+      setGeminiSuggestions(data.suggestions || []);
+    } catch (error) {
+      console.error('Error fetching Gemini suggestions:', error);
+      setError('Failed to get Gemini suggestions: ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-100 p-8 flex items-center justify-center">
@@ -192,6 +241,56 @@ export default function Dashboard() {
             )}
           </div>
         </div>
+
+            
+          <div>
+            <h2 className="text-2xl font-Khand mb-4">Suggested Sites to Block</h2>
+            {loading && geminiSuggestions.length === 0 ? (
+              <p className="text-gray-300 text-xl font-Khand">Loading suggestions...</p>
+            ) : geminiSuggestions.length === 0 ? (
+              <p className="text-gray-300 text-xl font-Khand">No suggestions yet.</p>
+            ) : (
+              <div className="whitespace-nowrap overflow-x-auto py-2">
+                {geminiSuggestions
+                  .map(site => {
+                    // Clean up the URL formatting
+                    let cleanUrl = site
+                      .replace(/"/g, '')      // Remove quotes
+                      .replace(/,$/, '')      // Remove trailing commas
+                      .replace(/\.$/, '')     // Remove trailing periods
+                      .trim();
+                    
+                    // Ensure it starts with https:// if not already
+                    if (!cleanUrl.startsWith('http')) {
+                      cleanUrl = `https://${cleanUrl}`;
+                    }
+                    
+                    return cleanUrl;
+                  })
+                  .filter(site => site) // Remove any empty strings
+                  .map((site, i) => {
+                    try {
+                      const url = new URL(site);
+                      return (
+                        <span key={i} className="text-gray-800 font-Khand text-lg">
+                          {url.hostname}
+                          {i < geminiSuggestions.length - 1 && (
+                            <span className="text-gray-500 mx-2">|</span>
+                          )}
+                        </span>
+                      );
+                    } catch (e) {
+                      console.error('Invalid URL in suggestions:', site, e);
+                      return null; // Return null for invalid URLs
+                    }
+                  })
+                  .filter(item => item != null) // Filter out null values
+                }
+              </div>
+            )}
+          </div>
+
+
       </div>
     </div>
   );
