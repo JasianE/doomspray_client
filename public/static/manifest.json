@@ -1,16 +1,18 @@
 {
   "manifest_version": 3,
-  "name": "Test Extension",
+  "name": "My React Chrome Extension",
   "version": "1.0",
-  "description": "Testing background worker",
-  "background": {
-    "service_worker": "background.js"
-  },
-  "permissions": ["desktopCapture",
-    "tabs",
-    "scripting",
-    "activeTab"],
   "action": {
     "default_popup": "index.html"
-  }
+  },
+  "background": {
+    "service-worker": "background.js"
+  },
+  "permissions": [
+    "desktopCapture",
+    "tabs",
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": ["<all_urls>"]
 }

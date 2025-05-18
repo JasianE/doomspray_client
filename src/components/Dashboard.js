@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [geminiSuggestions, setGeminiSuggestions] = useState([]);
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
 
+  console.log(history)
   useEffect(() => {
     const fetchBlockedSites = async () => {
       try {
@@ -23,6 +24,7 @@ export default function Dashboard() {
             audience: "https://api.doomspray.com"
           }
         });
+        console.log(token)
 
         const response = await fetch('http://localhost:8000/blocked-sites', {
           method: 'GET',
