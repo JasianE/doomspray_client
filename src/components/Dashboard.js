@@ -55,7 +55,7 @@ export default function Dashboard() {
 
     if (isAuthenticated) fetchBlockedSites();
   }, [isAuthenticated, getAccessTokenSilently]);
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -242,7 +242,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-            
           <div>
             <h2 className="text-2xl font-Khand mb-4">Suggested Sites to Block</h2>
             {loading && geminiSuggestions.length === 0 ? (
@@ -258,6 +257,8 @@ export default function Dashboard() {
                       .replace(/"/g, '')      // Remove quotes
                       .replace(/,$/, '')      // Remove trailing commas
                       .replace(/\.$/, '')     // Remove trailing periods
+                      .replace(/",/g, '')     // Remove ",
+                      .replace(/"]}/g, '')    // Remove ]}
                       .trim();
                     
                     // Ensure it starts with https:// if not already
@@ -265,32 +266,38 @@ export default function Dashboard() {
                       cleanUrl = `https://${cleanUrl}`;
                     }
                     
-                    return cleanUrl;
-                  })
-                  .filter(site => site) // Remove any empty strings
-                  .map((site, i) => {
                     try {
-                      const url = new URL(site);
-                      return (
-                        <span key={i} className="text-gray-800 font-Khand text-lg">
-                          {url.hostname}
-                          {i < geminiSuggestions.length - 1 && (
-                            <span className="text-gray-500 mx-2">|</span>
-                          )}
-                        </span>
-                      );
-                    } catch (e) {
-                      console.error('Invalid URL in suggestions:', site, e);
+                      // Attempt to construct URL and return hostname, or null if invalid
+                      return new URL(cleanUrl).hostname;
+                    } catch (error) {
+                      console.error('Invalid URL after cleanup:', cleanUrl, error);
                       return null; // Return null for invalid URLs
                     }
                   })
-                  .filter(item => item != null) // Filter out null values
+                  .filter(hostname => hostname) // Remove any null entries
+                  .map((hostname, i) => (
+                    <React.Fragment key={i}>
+                      <button
+                        onClick={() => {
+                          console.log('Setting input with hostname:', hostname); // Log the hostname
+                          setInput(`https://${hostname}/`); // Pre-fill the input with a valid URL and add trailing slash
+                          handleSubmit({ preventDefault: () => {} }); // Trigger submit
+                        }}
+                        className="text-blue-600 hover:text-blue-800 font-Khand text-lg hover:underline cursor-pointer"
+                      >
+                        {hostname}
+                      </button>
+                      {i < geminiSuggestions.filter(hostname => hostname).length - 1 && (
+                        <span className="text-gray-500 mx-2">|</span>
+                      )}
+                    </React.Fragment>
+                  ))
                 }
               </div>
             )}
           </div>
 
-
+          
       </div>
     </div>
   );
